@@ -296,6 +296,44 @@ app.delete('/api/classes/:id', async (req, res) => {
   }
 });
 
+// ============ SETUP ENDPOINT (One-time use) ============
+
+app.post('/api/setup', async (req, res) => {
+  try {
+    // Check if admin already exists
+    const existingAdmin = await Teacher.findOne({ email: 'admin@school.com' });
+    
+    if (existingAdmin) {
+      return res.json({ message: 'Users already exist', users: await Teacher.find() });
+    }
+
+    // Create admin
+    const admin = new Teacher({
+      email: 'admin@school.com',
+      name: 'Admin User',
+      role: 'admin',
+      assignedClasses: []
+    });
+    await admin.save();
+
+    // Create teacher
+    const teacher = new Teacher({
+      email: 'teacher@school.com',
+      name: 'Teacher User',
+      role: 'teacher',
+      assignedClasses: []
+    });
+    await teacher.save();
+
+    res.json({ 
+      message: 'Setup completed successfully!',
+      users: [admin, teacher]
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ============ TEACHERS ============
 
 // Get all teachers
